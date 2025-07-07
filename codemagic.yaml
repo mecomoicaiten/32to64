@@ -1,0 +1,28 @@
+workflows:
+  ios-app:
+    name: Build iOS App
+    max_build_duration: 15
+    environment:
+      vars:
+        XCODE_PROJECT: "LiveExec.xcodeproj"
+        XCODE_SCHEME: "LiveExec"
+      xcode: latest
+    scripts:
+      - name: Install dependencies
+        script: |
+          # Nếu dự án dùng CocoaPods
+          pod install || echo "No pods to install"
+      - name: Build .ipa
+        script: |
+          xcodebuild -project "$XCODE_PROJECT" \
+                     -scheme "$XCODE_SCHEME" \
+                     -sdk iphoneos \
+                     -configuration Release \
+                     -archivePath $CM_BUILD_DIR/LiveExec.xcarchive archive
+
+          xcodebuild -exportArchive \
+                     -archivePath $CM_BUILD_DIR/LiveExec.xcarchive \
+                     -exportOptionsPlist exportOptions.plist \
+                     -exportPath $CM_BUILD_DIR/build
+    artifacts:
+      - build/*.ipa
